@@ -9,6 +9,11 @@ ARG ZUBR_SERVER_VERSION=main
 # Clone and build zubr-server
 WORKDIR /build
 RUN git clone --depth 1 --branch ${ZUBR_SERVER_VERSION} https://github.com/micr0-dev/zubr-server.git .
+
+# Fix health check: remove the -x flag from pgrep command
+# The -x flag requires exact match, but the process is actually named '/usr/bin/inspircd'
+RUN sed -i 's/"pgrep", "-x", "inspircd"/"pgrep", "inspircd"/g' internal/api/health.go
+
 RUN go mod download
 RUN CGO_ENABLED=1 GOOS=linux go build -o zubr-server ./cmd/zubr-server
 
@@ -23,14 +28,21 @@ RUN apk update --no-cache || (sleep 5 && apk update --no-cache) && \
     curl \
     inspircd
 
-# Copy zubr-server binary
+# Copy zubr-server binary and config
 COPY --from=builder /build/zubr-server /usr/local/bin/zubr-server
+COPY --from=builder /build/config.toml /app/config.toml
 
 # Create necessary directories and user
 RUN addgroup -g 10000 -S zubr && \
     adduser -u 10000 -S -G zubr -h /app zubr && \
-    mkdir -p /app/data /inspircd/data /inspircd/conf && \
-    chown -R zubr:zubr /app /inspircd
+    mkdir -p /app/data /inspircd/data /inspircd/conf /run/inspircd && \
+    chown -R zubr:zubr /app /inspircd /run/inspircd
+
+# Update config paths for container environment
+RUN sed -i 's|inspircd_path = ".*"|inspircd_path = "/usr/bin/inspircd"|' /app/config.toml && \
+    sed -i 's|config_path = ".*"|config_path = "/etc/inspircd"|' /app/config.toml && \
+    sed -i 's|users_file = ".*"|users_file = "data/users.json"|' /app/config.toml && \
+    chown -R zubr:zubr /etc/inspircd
 
 # Switch to zubr user
 USER zubr

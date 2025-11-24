@@ -10,6 +10,7 @@ services:
     ports:
       - "3000:3000"  # API server
       - "6667:6667"  # IRC
+      - "9000:9000"  # Web UI (shared network with zubr-web)
     volumes:
       - zubr-data:/app/data
       - inspircd-data:/inspircd/data
@@ -30,8 +31,7 @@ services:
         ZUBR_WEB_VERSION: ${ZUBR_WEB_VERSION:-master}
     container_name: zubr-web
     restart: unless-stopped
-    ports:
-      - "9000:9000"
+    network_mode: "service:zubr-server"
     environment:
       - NODE_ENV=production
     depends_on:

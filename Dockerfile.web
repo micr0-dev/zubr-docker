@@ -9,6 +9,9 @@ RUN apk update && apk add --no-cache git python3 make g++
 WORKDIR /build
 RUN git clone --depth 1 --branch ${ZUBR_WEB_VERSION} https://github.com/micr0-dev/zubr-web.git .
 
+# Update API URL to use 127.0.0.1 (since we share network namespace with zubr-server)
+RUN sed -i 's|url: "http://localhost:3000"|url: "http://127.0.0.1:3000"|g' /build/defaults/config.js
+
 # Install dependencies and build
 RUN yarn install --frozen-lockfile --network-timeout 100000
 RUN NODE_ENV=production yarn build
