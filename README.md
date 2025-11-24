@@ -45,6 +45,169 @@ Complete Docker setup for the Zubr IRC-powered chat application.
    - API server: http://localhost:3000
    - IRC server: localhost:6667
 
+## Production Deployment with Apache/httpd & SSL
+
+### Prerequisites
+
+#### Install Docker
+Follow the official Docker installation guide for your operating system:
+- **Docker Installation**: https://docs.docker.com/engine/install/
+
+After installation, verify Docker is working:
+```bash
+docker --version
+docker compose version
+```
+
+#### Install Apache HTTP Server
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install apache2
+sudo a2enmod proxy proxy_http proxy_wstunnel rewrite ssl headers
+sudo systemctl restart apache2
+```
+
+**CentOS/RHEL:**
+```bash
+sudo yum install httpd mod_ssl
+sudo systemctl enable httpd
+sudo systemctl start httpd
+```
+
+**macOS (Homebrew):**
+```bash
+brew install httpd
+```
+
+#### Install Certbot for SSL Certificates
+
+Certbot is a free, automated tool for obtaining and renewing SSL/TLS certificates from Let's Encrypt.
+
+**Project Page**: https://certbot.eff.org/
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install certbot python3-certbot-apache
+```
+
+**CentOS/RHEL:**
+```bash
+sudo yum install certbot python3-certbot-apache
+```
+
+**Other systems**: Visit https://certbot.eff.org/instructions for detailed instructions.
+
+### Setup Steps
+
+#### 1. Configure DNS
+Point your domain name to your server's IP address:
+```
+A Record: your-domain.com → YOUR_SERVER_IP
+```
+
+#### 2. Deploy Zubr with Docker
+```bash
+git clone https://github.com/micr0-dev/zubr-docker.git
+cd zubr-docker
+docker compose up -d
+```
+
+Verify services are running:
+```bash
+docker compose ps
+curl http://localhost:9000
+```
+
+#### 3a. Configure Apache (Ubuntu/Debian)
+
+Copy the Apache configuration file:
+```bash
+sudo cp zubr.conf /etc/apache2/sites-available/zubr.conf
+```
+
+Edit the configuration with your domain:
+```bash
+sudo nano /etc/apache2/sites-available/zubr.conf
+```
+
+Replace `your-domain.com` with your actual domain name.
+
+Enable the site:
+```bash
+sudo a2ensite zubr.conf
+sudo systemctl reload apache2
+```
+
+#### 3b. Configure Apache/httpd (CentOS/RHEL)
+
+Copy the Apache configuration file:
+```bash
+sudo cp zubr.conf /etc/httpd/conf.d/zubr.conf
+```
+
+Edit the configuration with your domain:
+```bash
+sudo nano /etc/httpd/conf.d/zubr.conf
+```
+
+Replace `your-domain.com` with your actual domain name.
+
+Restart Apache:
+```bash
+sudo systemctl restart httpd
+```
+
+#### 4. Obtain SSL Certificate with Certbot
+
+Run Certbot to automatically obtain and configure SSL:
+```bash
+sudo certbot --apache -d your-domain.com
+```
+
+Follow the prompts:
+- Enter your email address
+- Agree to the Terms of Service
+- Choose whether to redirect HTTP to HTTPS (recommended: Yes)
+
+Certbot will automatically:
+- Obtain the SSL certificate
+- Update your Apache configuration
+- Set up automatic renewal
+
+#### 5. Test SSL Configuration
+
+Test your SSL setup at: https://www.ssllabs.com/ssltest/
+
+#### 6. Verify Auto-Renewal
+
+Certbot sets up automatic renewal. Test it with:
+```bash
+sudo certbot renew --dry-run
+```
+
+### Firewall Configuration
+
+Open required ports:
+
+**UFW (Ubuntu/Debian):**
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 6667/tcp  # IRC (if you are running a public instance)
+sudo ufw enable
+```
+
+**firewalld (CentOS/RHEL):**
+```bash
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --permanent --add-port=6667/tcp  # IRC (if you are running a public instance)
+sudo firewall-cmd --reload
+```
+
 ## Configuration
 
 ### Ports
@@ -120,6 +283,9 @@ docker compose logs zubr-server
 docker compose down -v
 docker compose up -d
 ```
+
+### Contact
+For support, feel free to reachout on https://zubr.chat instance in the #support channel.
 
 ## Development
 
