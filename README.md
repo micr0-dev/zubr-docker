@@ -35,30 +35,17 @@ Complete Docker setup for the Zubr IRC-powered chat application.
    cd zubr-docker
 ```
 
-2. (Optional) Copy and customize environment variables:
-```bash
-   cp .env.example .env
-```
-
-3. Start the services:
+2. Start the services:
 ```bash
    docker compose up -d
 ```
 
-4. Access the application:
+3. Access the application:
    - Web interface: http://localhost:9000
    - API server: http://localhost:3000
    - IRC server: localhost:6667
 
 ## Configuration
-
-### Building Specific Versions
-
-Edit `.env` to specify versions:
-```bash
-ZUBR_SERVER_VERSION=v0.3.0
-ZUBR_WEB_VERSION=v1.2.0
-```
 
 ### Ports
 
@@ -98,16 +85,7 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
-### Health Checks
 
-Both services include health checks:
-```bash
-# Check zubr-server health
-curl http://localhost:3000/api/health
-
-# Check zubr-web health
-curl http://localhost:9000
-```
 
 ## Architecture
 ```
