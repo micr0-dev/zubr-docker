@@ -1,0 +1,33 @@
+FROM node:20-alpine AS builder
+
+ARG ZUBR_WEB_VERSION=main
+
+# Install dependencies
+RUN apk add --no-cache git python3 make g++
+
+# Clone zubr-web
+WORKDIR /build
+RUN git clone --depth 1 --branch ${ZUBR_WEB_VERSION} https://github.com/micr0-dev/zubr-web.git .
+
+# Install dependencies and build
+RUN yarn install --frozen-lockfile
+RUN NODE_ENV=production yarn build
+
+# Runtime stage
+FROM node:20-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache tini curl
+
+# Copy built application
+WORKDIR /app
+COPY --from=builder /build /app
+
+# Expose port
+EXPOSE 9000
+
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the application
+CMD ["yarn", "start"]

@@ -1,0 +1,48 @@
+services:
+  zubr-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+      args:
+        ZUBR_SERVER_VERSION: ${ZUBR_SERVER_VERSION:-main}
+    container_name: zubr-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"  # API server
+      - "6667:6667"  # IRC
+    volumes:
+      - zubr-data:/app/data
+      - inspircd-data:/inspircd/data
+    environment:
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  zubr-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        ZUBR_WEB_VERSION: ${ZUBR_WEB_VERSION:-main}
+    container_name: zubr-web
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      zubr-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  zubr-data:
+  inspircd-data:

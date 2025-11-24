@@ -1,0 +1,35 @@
+FROM golang:1.24-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git build-base
+
+ARG ZUBR_SERVER_VERSION=main
+
+# Clone and build zubr-server
+WORKDIR /build
+RUN git clone --depth 1 --branch ${ZUBR_SERVER_VERSION} https://github.com/micr0-dev/zubr-server.git .
+RUN go mod download
+RUN CGO_ENABLED=1 go build -o zubr-server .
+
+# Runtime stage
+FROM inspircd/inspircd-docker:latest
+
+# Install runtime dependencies
+USER root
+RUN apk add --no-cache ca-certificates sqlite-libs curl
+
+# Copy zubr-server binary
+COPY --from=builder /build/zubr-server /usr/local/bin/zubr-server
+
+# Create data directory
+RUN mkdir -p /app/data && chown inspircd:inspircd /app/data
+
+# Switch to inspircd user
+USER inspircd
+WORKDIR /app
+
+# Expose ports
+EXPOSE 3000 6667
+
+# Start zubr-server (which manages InspIRCd)
+CMD ["/usr/local/bin/zubr-server"]
