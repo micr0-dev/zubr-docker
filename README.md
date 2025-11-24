@@ -31,7 +31,7 @@ Complete Docker setup for the Zubr IRC-powered chat application.
 
 1. Clone this repository:
 ```bash
-   git clone https://github.com/yourusername/zubr-docker.git
+   git clone https://github.com/micr0-dev/zubr-docker.git
    cd zubr-docker
 ```
 
@@ -42,7 +42,7 @@ Complete Docker setup for the Zubr IRC-powered chat application.
 
 3. Start the services:
 ```bash
-   docker-compose up -d
+   docker compose up -d
 ```
 
 4. Access the application:
@@ -77,25 +77,25 @@ Data is stored in Docker volumes:
 
 ### View logs
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Restart services
 ```bash
-docker-compose restart
+docker compose restart
 ```
 
 ### Stop services
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Update to latest version
 ```bash
-docker-compose down
-docker-compose pull
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down
+docker compose pull
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Health Checks
@@ -129,18 +129,18 @@ curl http://localhost:9000
 ## Troubleshooting
 
 ### Services won't start
-Check logs: `docker-compose logs`
+Check logs: `docker compose logs`
 
 ### InspIRCd not responding
 The zubr-server automatically manages InspIRCd. Check server logs:
 ```bash
-docker-compose logs zubr-server
+docker compose logs zubr-server
 ```
 
 ### Reset everything
 ```bash
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
 ```
 
 ## Development
