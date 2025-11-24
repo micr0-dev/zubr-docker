@@ -1,7 +1,8 @@
 FROM golang:1.24-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git build-base
+# Install build dependencies with better error handling
+RUN apk update --no-cache || (sleep 5 && apk update --no-cache) && \
+    apk add --no-cache git build-base gcc musl-dev sqlite-dev
 
 ARG ZUBR_SERVER_VERSION=main
 
@@ -9,27 +10,38 @@ ARG ZUBR_SERVER_VERSION=main
 WORKDIR /build
 RUN git clone --depth 1 --branch ${ZUBR_SERVER_VERSION} https://github.com/micr0-dev/zubr-server.git .
 RUN go mod download
-RUN CGO_ENABLED=1 go build -o zubr-server .
+RUN CGO_ENABLED=1 GOOS=linux go build -o zubr-server ./cmd/zubr-server
 
-# Runtime stage
-FROM inspircd/inspircd-docker:latest
+# Runtime stage - use Alpine as base
+FROM alpine:3.20
 
-# Install runtime dependencies
-USER root
-RUN apk add --no-cache ca-certificates sqlite-libs curl
+# Install InspIRCd and runtime dependencies
+RUN apk update --no-cache || (sleep 5 && apk update --no-cache) && \
+    apk add --no-cache \
+    ca-certificates \
+    sqlite-libs \
+    curl \
+    inspircd
 
 # Copy zubr-server binary
 COPY --from=builder /build/zubr-server /usr/local/bin/zubr-server
 
-# Create data directory
-RUN mkdir -p /app/data && chown inspircd:inspircd /app/data
+# Create necessary directories and user
+RUN addgroup -g 10000 -S zubr && \
+    adduser -u 10000 -S -G zubr -h /app zubr && \
+    mkdir -p /app/data /inspircd/data /inspircd/conf && \
+    chown -R zubr:zubr /app /inspircd
 
-# Switch to inspircd user
-USER inspircd
+# Switch to zubr user
+USER zubr
 WORKDIR /app
 
 # Expose ports
 EXPOSE 3000 6667
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start zubr-server (which manages InspIRCd)
 CMD ["/usr/local/bin/zubr-server"]

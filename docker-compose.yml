@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile.web
       args:
-        ZUBR_WEB_VERSION: ${ZUBR_WEB_VERSION:-main}
+        ZUBR_WEB_VERSION: ${ZUBR_WEB_VERSION:-master}
     container_name: zubr-web
     restart: unless-stopped
     ports:
