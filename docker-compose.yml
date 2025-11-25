@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"  # API server
-      - "6667:6667"  # IRC
+      - "6697:6697"  # IRC (SSL only)
       - "9000:9000"  # Web UI (shared network with zubr-web)
     volumes:
       - zubr-data:/app/data

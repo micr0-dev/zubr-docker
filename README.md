@@ -25,7 +25,7 @@ Complete Docker setup for the Zubr IRC-powered chat application.
 
 - **zubr-server**: Go backend API server that manages users and InspIRCd (port 3000)
 - **zubr-web**: Node.js frontend web interface (port 9000)
-- **InspIRCd**: IRC daemon (port 6667) - managed automatically by zubr-server
+- **InspIRCd**: IRC daemon (port 6697 SSL) - managed automatically by zubr-server
 
 ## Quick Start
 
@@ -43,7 +43,7 @@ Complete Docker setup for the Zubr IRC-powered chat application.
 3. Access the application:
    - Web interface: http://localhost:9000
    - API server: http://localhost:3000
-   - IRC server: localhost:6667
+   - IRC server (SSL): localhost:6697
 
 ## Production Deployment with Apache/httpd & SSL
 
@@ -196,7 +196,7 @@ Open required ports:
 ```bash
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-sudo ufw allow 6667/tcp  # IRC (if you are running a public instance)
+sudo ufw allow 6697/tcp  # IRC SSL (if you are running a public instance)
 sudo ufw enable
 ```
 
@@ -204,7 +204,7 @@ sudo ufw enable
 ```bash
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --permanent --add-port=6667/tcp  # IRC (if you are running a public instance)
+sudo firewall-cmd --permanent --add-port=6697/tcp  # IRC SSL (if you are running a public instance)
 sudo firewall-cmd --reload
 ```
 
@@ -215,7 +215,7 @@ sudo firewall-cmd --reload
 Default ports can be changed in `docker-compose.yml`:
 - `9000:9000` - Web interface
 - `3000:3000` - API server
-- `6667:6667` - IRC server
+- `6697:6697` - IRC server (SSL only)
 
 ### Data Persistence
 
@@ -258,7 +258,7 @@ docker compose up -d
 └─────────────┘         │                  │
                         │  ┌─────────────┐ │
                         │  │  InspIRCd   │ │
-                        │  │ (port 6667) │ │
+                        │  │ (port 6697) │ │
                         │  └─────────────┘ │
                         └──────────────────┘
 ```
