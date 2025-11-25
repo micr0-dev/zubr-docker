@@ -253,7 +253,7 @@ docker compose up -d
 ## Architecture
 ```
 ┌─────────────┐         ┌──────────────────┐
-│  zubr-web   │───────▶│  zubr-server     │
+│  zubr-web   │────────▶│  zubr-server     │
 │  (port 9000)│         │  (port 3000)     │
 └─────────────┘         │                  │
                         │  ┌─────────────┐ │
