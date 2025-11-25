@@ -6,7 +6,7 @@
 </h1>
 
 <h3 align="center">
-	Bringing IRC into the modern era
+		Instance-based decentralized federated chat
 </h3>
 
 <p align="center">
@@ -19,7 +19,7 @@
 	</strong>
 </p>
 
-Complete Docker setup for the Zubr IRC-powered chat application.
+Complete Docker setup for Zubr, an Instance-based decentralized federated chat.
 
 ## Components
 
