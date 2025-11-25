@@ -10,9 +10,11 @@ ARG ZUBR_SERVER_VERSION=main
 WORKDIR /build
 RUN git clone --depth 1 --branch ${ZUBR_SERVER_VERSION} https://github.com/micr0-dev/zubr-server.git .
 
-# Fix health check: remove the -x flag from pgrep command
 # The -x flag requires exact match, but the process is actually named '/usr/bin/inspircd'
 RUN sed -i 's/"pgrep", "-x", "inspircd"/"pgrep", "inspircd"/g' internal/api/health.go
+
+# change domain name in config.toml from default.domain to ${SERVER_DOMAIN}
+RUN sed -i 's|default.domain|${SERVER_DOMAIN}|' config.toml
 
 RUN go mod download
 RUN CGO_ENABLED=1 GOOS=linux go build -o zubr-server ./cmd/zubr-server
