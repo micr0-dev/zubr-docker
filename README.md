@@ -35,12 +35,20 @@ Complete Docker setup for the Zubr IRC-powered chat application.
    cd zubr-docker
 ```
 
-2. Start the services:
+2. Create and edit the .env file:
+```bash
+   cp .env.example .env
+   nano .env
+```
+
+Set your instance domain.
+
+3. Start the services:
 ```bash
    docker compose up -d
 ```
 
-3. Access the application:
+4. Access the application:
    - Web interface: http://localhost:9000
    - API server: http://localhost:3000
    - IRC server (SSL): localhost:6697
@@ -112,6 +120,17 @@ A Record: your-domain.com → YOUR_SERVER_IP
 ```bash
 git clone https://github.com/micr0-dev/zubr-docker.git
 cd zubr-docker
+```
+
+Make the .env file:
+```bash
+cp .env.example .env
+nano .env
+```
+Make sure to set your instance domain.
+
+Start the services:
+```bash
 docker compose up -d
 ```
 
@@ -177,9 +196,67 @@ Certbot will automatically:
 - Update your Apache configuration
 - Set up automatic renewal
 
-#### 5. Test SSL Configuration
+#### 5. Configure stunnel for IRC TLS Termination (Optional but Recommended)
 
-Test your SSL setup at: https://www.ssllabs.com/ssltest/
+Instead of managing TLS certificates separately for InspIRCd, you can use stunnel to handle TLS termination for IRC connections using the same Let's Encrypt certificates as Apache.
+
+**Benefits:**
+- Uses the same certificates as your web server
+- Automatic certificate renewal with Certbot
+- Simpler IRC server configuration
+- Centralized TLS management
+
+**Install stunnel:**
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install stunnel4
+```
+
+**CentOS/RHEL:**
+```bash
+sudo yum install stunnel
+```
+
+**Configure stunnel for IRC:**
+
+Create the stunnel configuration file:
+```bash
+sudo nano /etc/stunnel/irc.conf
+```
+
+Add the following configuration:
+```ini
+[irc]
+; Accept TLS connections on port 6697
+accept = 6697
+; Forward to plain IRC on localhost:6667
+connect = 127.0.0.1:6667
+
+; Use the same Let's Encrypt certificates as Apache
+cert = /etc/letsencrypt/live/your-domain.com/fullchain.pem
+key = /etc/letsencrypt/live/your-domain.com/privkey.pem
+
+; TLS settings
+sslVersion = TLSv1.2
+ciphers = HIGH:!aNULL:!MD5
+```
+
+Replace `your-domain.com` with your actual domain name.  (Or you can copy the paths from the Apache SSL configuration.)
+
+**Enable stunnel:**
+
+**Ubuntu/Debian:**
+```bash
+sudo systemctl enable stunnel4
+sudo systemctl start stunnel4
+```
+
+**CentOS/RHEL:**
+```bash
+sudo systemctl enable stunnel
+sudo systemctl start stunnel
+```
 
 #### 6. Verify Auto-Renewal
 
@@ -215,7 +292,7 @@ sudo firewall-cmd --reload
 Default ports can be changed in `docker-compose.yml`:
 - `9000:9000` - Web interface
 - `3000:3000` - API server
-- `6697:6697` - IRC server (SSL only)
+- `6667:6667` - IRC server (SSL only)
 
 ### Data Persistence
 
